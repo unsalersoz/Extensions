@@ -1,5 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Extensions
 {
@@ -53,5 +56,54 @@ namespace Extensions
 			DateTimeOffset output;
 			return DateTimeOffset.TryParse(input.ToString(), out output) ? output : (DateTimeOffset?) null;
 		}
-	}
+
+        /// <summary>
+		/// An unsafe, slow but more byte-to-byte copy of an object into a byte array.
+		/// </summary>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public static byte[] ToByteArrayMarshal(this object input)
+        {
+            byte[] result;
+
+            try
+            {
+                int size = Marshal.SizeOf(input);
+                result = new byte[size];
+                IntPtr ptr = Marshal.AllocHGlobal(size);
+
+                Marshal.StructureToPtr(input, ptr, false);
+                Marshal.Copy(ptr, result, 0, size);
+                Marshal.FreeHGlobal(ptr);
+            }
+            catch (Exception exception)
+            {
+                result = null;
+                throw new InvalidCastException("An error occured while converting object to byte array with marshalling", exception);
+            }
+
+            return result;
+        }
+
+        public static byte[] ToByteArraySafe(this object input)
+        {
+            byte[] result;
+
+            if (input != null)
+            {
+                using (MemoryStream outputstream = new MemoryStream())
+                {
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(outputstream, input);
+                    result = outputstream.ToArray();
+                }
+            }
+            else
+            {
+                result = null;
+            }
+
+            return result;
+        }
+    }
 }

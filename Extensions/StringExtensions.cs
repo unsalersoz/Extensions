@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 
 namespace Extensions
 {
@@ -18,8 +19,18 @@ namespace Extensions
 
 		public static string NullString(this string input) => string.IsNullOrEmpty(input) ? null : input;
 
-		public static string NullZeroString(this string input) => string.IsNullOrEmpty(input) || input.Equals("0")
-			? null
-			: input;
+		public static string NullZeroString(this string input) => string.IsNullOrEmpty(input) || input.Equals("0") ? null : input;
+
+        public static string ReplaceIfMoreThanSpecified(this string text, char characterToBeCounted, int recurrenceCount, string replaceText)
+        {
+            if (text.TrimEnd(new[] { characterToBeCounted }).Count(c => c == characterToBeCounted) > (recurrenceCount - 1))
+            {
+                text = replaceText ?? string.Empty;
+            }
+
+            return text;
+        }
+
+        public static bool IsNullOrEmpty(this string text) => string.IsNullOrEmpty(text);
 	}
 }
